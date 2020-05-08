@@ -4,6 +4,10 @@
   "description": "Vanilla JS react implementation, inspired by\r https://pomb.us/build-your-own-react/",
   "main": "index.js",
   "scripts": {
+    "build": "rm -rf build && mkdir build && cp src/index.html build && npm run rollup",
+    "rollup": "rollup --input src/index.js --file build/index.js",
+    "start": "http-server src -o",
+    "start:build": "npm run build && http-server build -o",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,5 +23,9 @@
   "prettier": {
     "singleQuote": true,
     "tabWidth": 2
+  },
+  "devDependencies": {
+    "http-server": "^0.12.3",
+    "rollup": "^2.8.2"
   }
 }

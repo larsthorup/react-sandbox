@@ -1,14 +1,7 @@
-import * as React from './lib/react.js';
 import * as ReactDOM from './lib/react-dom.js';
+import Hello from './hello.js';
 
-const h = React.createElement;
-
-const element = h(
-  'div',
-  { id: 'foo' },
-  h('h1', null, 'Hello'),
-  h('p', null, 'Hello from lib/react')
-);
+const element = Hello();
 
 const container = document.getElementById('root');
 
