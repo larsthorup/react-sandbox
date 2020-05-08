@@ -1,18 +1,15 @@
-const element = {
-  type: 'h1',
-  props: {
-    title: 'foo',
-    children: 'Hello',
-  },
-};
+import * as React from './lib/react.js';
+import * as ReactDOM from './lib/react-dom.js';
+
+const h = React.createElement;
+
+const element = h(
+  'div',
+  { id: 'foo' },
+  h('h1', null, 'Hello'),
+  h('p', null, 'Hello from lib/react')
+);
 
 const container = document.getElementById('root');
 
-const node = document.createElement(element.type);
-node['title'] = element.props.title;
-
-const text = document.createTextNode('');
-text['nodeValue'] = element.props.children;
-
-node.appendChild(text);
-container.appendChild(node);
+ReactDOM.render(element, container);

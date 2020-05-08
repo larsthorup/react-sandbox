@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/larsthorup/react-sandbox#readme",
   "prettier": {
-    "singleQuote": true
+    "singleQuote": true,
+    "tabWidth": 2
   }
 }
