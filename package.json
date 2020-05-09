@@ -10,7 +10,8 @@
     "start": "http-server src -o",
     "start:build": "npm run build && http-server build -o",
     "test": "node src/index.test.js src",
-    "test:build": "npm run build && node src/index.test.js build"
+    "test:build": "npm run build && node src/index.test.js build",
+    "travis": "npm audit && npm run test:build"
   },
   "repository": {
     "type": "git",

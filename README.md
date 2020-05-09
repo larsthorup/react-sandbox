@@ -14,7 +14,3 @@ npm run start:build
 npm test
 npm run test:build
 ```
-
-## To do
-
-- travis-ci
