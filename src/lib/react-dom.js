@@ -48,10 +48,10 @@ const updateDom = (dom, prevProps, nextProps) => {
 };
 
 const commitRoot = () => {
-  deletions.forEach(commitWork);
-  commitWork(wipRoot.child);
-  currentRoot = wipRoot;
-  wipRoot = null;
+  internal.deletions.forEach(commitWork);
+  commitWork(internal.wipRoot.child);
+  internal.currentRoot = internal.wipRoot;
+  internal.wipRoot = null;
 };
 
 const commitWork = (fiber) => {
@@ -81,30 +81,25 @@ function commitDeletion(fiber, domParent) {
 }
 
 export const render = (element, container) => {
-  wipRoot = {
+  internal.wipRoot = {
     dom: container,
     props: {
       children: [element],
     },
-    alternate: currentRoot,
+    alternate: internal.currentRoot,
   };
-  deletions = [];
-  nextUnitOfWork = wipRoot;
+  internal.deletions = [];
+  internal.nextUnitOfWork = internal.wipRoot;
 };
-
-let nextUnitOfWork = null;
-let currentRoot = null;
-let wipRoot = null;
-let deletions = null;
 
 const workLoop = (deadline) => {
   let shouldYield = false;
-  while (nextUnitOfWork && !shouldYield) {
-    nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
+  while (internal.nextUnitOfWork && !shouldYield) {
+    internal.nextUnitOfWork = performUnitOfWork(internal.nextUnitOfWork);
     shouldYield = deadline.timeRemaining() < 1;
-    // console.log(deadline, nextUnitOfWork);
+    // console.log(deadline, internal.nextUnitOfWork);
   }
-  if (!nextUnitOfWork && wipRoot) {
+  if (!internal.nextUnitOfWork && internal.wipRoot) {
     commitRoot();
   }
   requestIdleCallback(workLoop);
@@ -131,7 +126,20 @@ const performUnitOfWork = (fiber) => {
   }
 };
 
+// Note: to be used only by react.js
+export const internal = {
+  currentRoot: null,
+  deletions: null,
+  nextUnitOfWork: null,
+  wipFiber: null,
+  wipRoot: null,
+  hookIndex: null,
+};
+
 const updateFunctionComponent = (fiber) => {
+  internal.wipFiber = fiber;
+  internal.hookIndex = 0;
+  internal.wipFiber.hooks = [];
   const children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
 };
@@ -175,7 +183,7 @@ const reconcileChildren = (wipFiber, elements) => {
     }
     if (oldFiber && !sameType) {
       oldFiber.effectTag = 'DELETION';
-      deletions.push(oldFiber);
+      internal.deletions.push(oldFiber);
     }
     if (oldFiber) {
       oldFiber = oldFiber.sibling;

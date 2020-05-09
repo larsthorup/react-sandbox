@@ -25,8 +25,19 @@ import puppeteer from 'puppeteer';
   };
 
   const test = async () => {
-    const greeting = await page.$eval('div#foo p', (el) => el.textContent);
-    assert.equal(greeting, 'Hello from lib/react');
+    assert.equal(
+      await page.evaluate(
+        () => document.querySelector('div#hello p').textContent
+      ),
+      'Hello from lib/react'
+    );
+    await page.type('div#hello input', 'Lars');
+    await page.click('div#hello button');
+    await page.waitFor(
+      () =>
+        document.querySelector('div#hello p').textContent ===
+        'Hello Lars from lib/react'
+    );
   };
 
   try {
