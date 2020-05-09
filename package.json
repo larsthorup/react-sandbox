@@ -2,13 +2,15 @@
   "name": "react-sandbox",
   "version": "0.1.0",
   "description": "Vanilla JS react implementation, inspired by\r https://pomb.us/build-your-own-react/",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "build": "rm -rf build && mkdir build && cp src/index.html build && npm run rollup",
     "rollup": "rollup --input src/index.js --file build/index.js",
     "start": "http-server src -o",
     "start:build": "npm run build && http-server build -o",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node src/index.test.js src",
+    "test:build": "npm run build && node src/index.test.js build"
   },
   "repository": {
     "type": "git",
@@ -26,6 +28,7 @@
   },
   "devDependencies": {
     "http-server": "^0.12.3",
+    "puppeteer": "^3.0.4",
     "rollup": "^2.8.2"
   }
 }

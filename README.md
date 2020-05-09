@@ -7,10 +7,14 @@ https://pomb.us/build-your-own-react/
 
 ```bash
 npm install
+
 npm start
 npm run start:build
+
+npm test
+npm run test:build
 ```
 
 ## To do
 
-- @testing-library/dom with puppeteer
+- travis-ci
