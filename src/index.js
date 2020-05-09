@@ -1,8 +1,7 @@
+import * as React from './lib/react.js';
 import * as ReactDOM from './lib/react-dom.js';
-import Hello from './hello.js';
+import App from './app.js';
 
-const element = Hello();
+const h = React.createElement;
 
-const container = document.getElementById('root');
-
-ReactDOM.render(element, container);
+ReactDOM.render(h(App), document.getElementById('root'));
