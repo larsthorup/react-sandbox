@@ -1,6 +1,7 @@
 import * as staticServer from './lib/static-server.js';
 import puppeteer from 'puppeteer';
 import { getScreen, userEvent, wait } from './lib/puppeteer-testing-library.js';
+import pti from 'puppeteer-to-istanbul';
 
 (async () => {
   let server;
@@ -12,8 +13,10 @@ import { getScreen, userEvent, wait } from './lib/puppeteer-testing-library.js';
     const port = 8090;
     const root = process.argv[2];
     server = await staticServer.launch(port, root);
+
     browser = await puppeteer.launch();
     page = await browser.newPage();
+    await page.coverage.startJSCoverage();
     await page.goto(`http://localhost:${port}`, {
       waitUntil: 'networkidle2',
     });
@@ -22,7 +25,9 @@ import { getScreen, userEvent, wait } from './lib/puppeteer-testing-library.js';
   };
 
   const afterAll = async () => {
+    pti.write(await page.coverage.stopJSCoverage());
     if (browser) await browser.close();
+
     if (server) await staticServer.close(server);
   };
 
