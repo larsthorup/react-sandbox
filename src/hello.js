@@ -7,7 +7,7 @@ const Hello = ({ name }) => {
   };
   const h1 = h('h1', null, 'Greeting');
   const p = h('p', null, `Hello ${value ? `${value} ` : ''}from ${name}`);
-  const input = h('input', { onChange, value });
+  const input = h('label', {}, 'Enter name:', h('input', { onChange, value }));
   const button = h('button', {}, 'Submit');
   return h('div', { id: 'hello' }, h1, p, input, button);
 };

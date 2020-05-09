@@ -5,7 +5,7 @@
 Vanilla JS react implementation, inspired by
 https://pomb.us/build-your-own-react/
 
-- Avoid any compilation steps (JSX, TypeScript)
+- Avoid any compilation steps during development (Webpack, JSX, TypeScript)
 
 ```bash
 npm install
@@ -16,3 +16,7 @@ npm run start:build
 npm test
 npm run test:build
 ```
+
+## TODO
+
+- nyc

@@ -1,11 +1,12 @@
-import * as assert from 'assert';
 import * as staticServer from './lib/static-server.js';
 import puppeteer from 'puppeteer';
+import { getScreen, userEvent, wait } from './lib/puppeteer-testing-library.js';
 
 (async () => {
   let server;
   let browser;
   let page;
+  let screen;
 
   const beforeAll = async () => {
     const port = 8090;
@@ -17,6 +18,7 @@ import puppeteer from 'puppeteer';
       waitUntil: 'networkidle2',
     });
     await page.screenshot({ path: 'output/index.test.png' });
+    screen = await getScreen(page);
   };
 
   const afterAll = async () => {
@@ -25,19 +27,10 @@ import puppeteer from 'puppeteer';
   };
 
   const test = async () => {
-    assert.equal(
-      await page.evaluate(
-        () => document.querySelector('div#hello p').textContent
-      ),
-      'Hello from lib/react'
-    );
-    await page.type('div#hello input', 'Lars');
-    await page.click('div#hello button');
-    await page.waitFor(
-      () =>
-        document.querySelector('div#hello p').textContent ===
-        'Hello Lars from lib/react'
-    );
+    await wait(() => screen.getByText('Hello from lib/react'));
+    await userEvent.type(screen.getByLabelText('Enter name:'), 'Lars');
+    await userEvent.click(screen.getByText('Submit'));
+    await wait(() => screen.getByText('Hello Lars from lib/react'));
   };
 
   try {
