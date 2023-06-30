@@ -6,15 +6,14 @@
   "main": "index.js",
   "scripts": {
     "build": "rm -rf build && mkdir build && cp src/index.html build && npm run rollup",
-    "coveralls": "coveralls < coverage/lcov.info",
+    "ci": "npm run test && npm run test:build",
     "nyc:prepare": "rm -rf coverage .nyc_output",
     "nyc:report": "nyc report --reporter=html --reporter=text-summary --reporter=lcov",
     "rollup": "rollup --input src/index.js --file build/index.js",
     "start": "http-server src -o",
     "start:build": "npm run build && http-server build -o",
     "test": "npm run nyc:prepare && node src/index.test.js src && npm run nyc:report",
-    "test:build": "npm run build && rm output/*.png && node src/index.test.js build",
-    "travis": "npm audit && npm run test && npm run coveralls && npm run test:build"
+    "test:build": "npm run build && rm output/*.png && node src/index.test.js build"
   },
   "repository": {
     "type": "git",
@@ -31,7 +30,6 @@
     "tabWidth": 2
   },
   "devDependencies": {
-    "coveralls": "^3.1.0",
     "http-server": "^13.0.2",
     "nyc": "^15.0.1",
     "pptr-testing-library": "^0.6.5",
