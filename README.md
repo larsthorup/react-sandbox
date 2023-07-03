@@ -20,4 +20,4 @@ npm test
 npm run test:build
 ```
 
-Coverage report in `coverage/index.html`.
+Coverage report in `coverage/index.html`
