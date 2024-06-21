@@ -7,9 +7,10 @@ const Hello = ({ name }) => {
   };
   const h1 = h('h1', null, 'Greeting');
   const p = h('p', null, `Hello ${value ? `${value} ` : ''}from ${name}`);
-  const input = h('label', {}, 'Enter name:', h('input', { onChange, value }));
+  const label = h('label', { htmlFor: 'name'}, 'Enter name:');
+  const input = h('input', { id: 'name', onChange, value });
   const button = h('button', {}, 'Submit');
-  return h('div', { id: 'hello' }, h1, p, input, button);
+  return h('div', { id: 'hello' }, h1, p, label, input, button);
 };
 
 export default Hello;
