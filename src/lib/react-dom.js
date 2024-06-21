@@ -1,3 +1,5 @@
+import "./cycle.js";
+
 const createDom = (fiber) => {
   const dom =
     fiber.type == 'TEXT_ELEMENT'
@@ -136,7 +138,7 @@ const workLoop = (deadline) => {
   }
   if (!internal.nextUnitOfWork && internal.wipRoot) {
     commitRoot();
-    // console.log(internal.currentRoot);
+    // console.log(JSON.stringify(JSON.decycle(internal.currentRoot), null, 2));
   }
   requestIdleCallback(workLoop);
 };
