@@ -49,27 +49,33 @@ const updateDom = (dom, prevProps, nextProps) => {
 
 const commitRoot = () => {
   internal.deletions.forEach(commitWork);
-  commitWork(internal.wipRoot.child);
-  internal.currentRoot = internal.wipRoot;
-  internal.wipRoot = null;
-};
-
-const commitWork = (fiber) => {
-  if (!fiber) return;
+  const fiber = internal.wipRoot.child;
   let domParentFiber = fiber.parent;
   while (!domParentFiber.dom) {
     domParentFiber = domParentFiber.parent;
   }
   const domParent = domParentFiber.dom;
-  if (fiber.effectTag === 'PLACEMENT' && fiber.dom != null) {
+  commitWork(fiber, domParent, 0);
+  internal.currentRoot = internal.wipRoot;
+  internal.wipRoot = null;
+};
+
+const commitWork = (fiber, domParent, domChildIndex) => {
+  console.log('commitWork', { fiber, domParent, domChildIndex });
+  if (!fiber) return;
+  const isFunctionComponent = fiber.type instanceof Function;
+  if (fiber.effectTag === 'PLACEMENT' && fiber.dom === null && !isFunctionComponent) {
+    // Note: hydration
+    fiber.dom = domParent.children[domChildIndex];
+  } else if (fiber.effectTag === 'PLACEMENT' && fiber.dom != null) {
     domParent.appendChild(fiber.dom);
   } else if (fiber.effectTag === 'DELETION') {
     commitDeletion(fiber, domParent);
   } else if (fiber.effectTag === 'UPDATE' && fiber.dom != null) {
     updateDom(fiber.dom, fiber.alternate.props, fiber.props);
   }
-  commitWork(fiber.child);
-  commitWork(fiber.sibling);
+  commitWork(fiber.child, fiber.dom || domParent, 0);
+  commitWork(fiber.sibling, domParent, domChildIndex + 1);
 };
 
 function commitDeletion(fiber, domParent) {
@@ -90,6 +96,35 @@ export const render = (element, container) => {
   };
   internal.deletions = [];
   internal.nextUnitOfWork = internal.wipRoot;
+  requestIdleCallback(workLoop);
+};
+
+export const hydrate = (element, container) => {
+  // internal.currentRoot = {
+  //   dom: container,
+  //   props: {
+  //     children: [element],
+  //   },
+  //   alternate: null,
+  //   hydrate: true,
+  // };
+  // console.log(internal.currentRoot);
+  internal.wipRoot = {
+    dom: container,
+    props: {
+      children: [element],
+    },
+    alternate: internal.currentRoot,
+  };
+  internal.deletions = [];
+  internal.nextUnitOfWork = internal.wipRoot;
+  while (internal.nextUnitOfWork) {
+    internal.nextUnitOfWork = performUnitOfWork(internal.nextUnitOfWork);
+  }
+  commitRoot();
+  console.log("Done hydrating!");
+  console.log(internal.currentRoot);
+  requestIdleCallback(workLoop);
 };
 
 const workLoop = (deadline) => {
@@ -101,13 +136,13 @@ const workLoop = (deadline) => {
   }
   if (!internal.nextUnitOfWork && internal.wipRoot) {
     commitRoot();
+    // console.log(internal.currentRoot);
   }
   requestIdleCallback(workLoop);
 };
 
-requestIdleCallback(workLoop);
-
 const performUnitOfWork = (fiber) => {
+  // console.log('performUnitOfWork', fiber);
   const isFunctionComponent = fiber.type instanceof Function;
   if (isFunctionComponent) {
     updateFunctionComponent(fiber);
@@ -146,21 +181,24 @@ const updateFunctionComponent = (fiber) => {
 
 const updateHostComponent = (fiber) => {
   if (!fiber.dom) {
-    fiber.dom = createDom(fiber);
+    // fiber.dom = createDom(fiber);
   }
   const elements = fiber.props.children;
   reconcileChildren(fiber, elements);
 };
 
 const reconcileChildren = (wipFiber, elements) => {
+  // console.log('reconcileChildren', { wipFiber, elements });
   let index = 0;
   let oldFiber = wipFiber.alternate && wipFiber.alternate.child;
+  // let hydrateDom = wipFiber.hydrate && wipFiber.dom;
   let prevSibling = null;
   while (index < elements.length || oldFiber != null) {
     const element = elements[index];
     let newFiber = null;
     // TODO: add support for "key" to handle "moved" elements
     const sameType = oldFiber && element && element.type == oldFiber.type;
+    // console.log({sameType, oldFiber, element})
     if (sameType) {
       newFiber = {
         type: oldFiber.type,
