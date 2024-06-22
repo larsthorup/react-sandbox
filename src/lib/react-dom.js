@@ -46,7 +46,6 @@ const updateDom = (dom, prevProps, nextProps) => {
     .forEach((name) => {
       const eventType = name.toLowerCase().substring(2);
       dom.addEventListener(eventType, nextProps[name]);
-      // console.log('Added event listener', eventType, nextProps[name]);
     });
 };
 
@@ -64,7 +63,6 @@ const commitRoot = () => {
 };
 
 const commitWork = (fiber, domParent, domChildIndex) => {
-  // console.log('commitWork', { fiber, domParent, domChildIndex });
   if (!fiber) return;
   const isFunctionComponent = fiber.type instanceof Function;
   if (fiber.effectTag === 'PLACEMENT' && fiber.dom === null && !isFunctionComponent) {
@@ -201,17 +199,14 @@ const updateHostComponent = (fiber, hydrate) => {
 };
 
 const reconcileChildren = (wipFiber, elements) => {
-  // console.log('reconcileChildren', { wipFiber, elements });
   let index = 0;
   let oldFiber = wipFiber.alternate && wipFiber.alternate.child;
-  // let hydrateDom = wipFiber.hydrate && wipFiber.dom;
   let prevSibling = null;
   while (index < elements.length || oldFiber != null) {
     const element = elements[index];
     let newFiber = null;
     // TODO: add support for "key" to handle "moved" elements
     const sameType = oldFiber && element && element.type == oldFiber.type;
-    // console.log({sameType, oldFiber, element})
     if (sameType) {
       newFiber = {
         type: oldFiber.type,
