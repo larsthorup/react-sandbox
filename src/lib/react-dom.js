@@ -121,7 +121,7 @@ export const hydrate = (element, container) => {
   internal.deletions = [];
   internal.nextUnitOfWork = internal.wipRoot;
   while (internal.nextUnitOfWork) {
-    internal.nextUnitOfWork = performUnitOfWork(internal.nextUnitOfWork);
+    internal.nextUnitOfWork = performUnitOfWork(internal.nextUnitOfWork, true);
   }
   commitRoot();
   // console.log("Done hydrating!");
@@ -153,13 +153,13 @@ const workLoop = (deadline) => {
   requestIdleCallback(workLoop);
 };
 
-const performUnitOfWork = (fiber) => {
+const performUnitOfWork = (fiber, hydrate) => {
   // console.log('performUnitOfWork', fiber);
   const isFunctionComponent = fiber.type instanceof Function;
   if (isFunctionComponent) {
     updateFunctionComponent(fiber);
   } else {
-    updateHostComponent(fiber);
+    updateHostComponent(fiber, hydrate);
   }
   if (fiber.child) {
     return fiber.child;
@@ -191,9 +191,10 @@ const updateFunctionComponent = (fiber) => {
   reconcileChildren(fiber, children);
 };
 
-const updateHostComponent = (fiber) => {
-  if (!fiber.dom) {
-    // fiber.dom = createDom(fiber);
+const updateHostComponent = (fiber, hydrate) => {
+  if (!hydrate && !fiber.dom) {
+    // Note: hydration will happen in commitWork()
+    fiber.dom = createDom(fiber);
   }
   const elements = fiber.props.children;
   reconcileChildren(fiber, elements);

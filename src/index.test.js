@@ -4,23 +4,27 @@ import { getScreen, userEvent, wait } from './lib/puppeteer-testing-library.js';
 import pti from 'puppeteer-to-istanbul';
 
 (async () => {
+  const port = 8090;
   let server;
   let browser;
   let page;
   let screen;
 
   const beforeAll = async () => {
-    const port = 8090;
     const root = process.argv[2];
     server = await staticServer.launch(port, root);
 
     browser = await puppeteer.launch();
     page = await browser.newPage();
     await page.coverage.startJSCoverage();
-    await page.goto(`http://localhost:${port}`, {
+  };
+
+  const beforeEach = async (mode) => {
+    console.log(`Running ${mode} test...`);
+    await page.goto(`http://localhost:${port}?${mode}`, {
       waitUntil: 'networkidle2',
     });
-    await page.screenshot({ path: 'output/index.test.png' });
+    await page.screenshot({ path: `output/index-${mode}.test.png` });
     screen = await getScreen(page);
   };
 
@@ -40,6 +44,9 @@ import pti from 'puppeteer-to-istanbul';
 
   try {
     await beforeAll();
+    await beforeEach('render');
+    await test();
+    await beforeEach('hydrate');
     await test();
   } catch (e) {
     console.error(e);
