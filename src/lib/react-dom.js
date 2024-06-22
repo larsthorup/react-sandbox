@@ -152,7 +152,6 @@ const workLoop = (deadline) => {
 };
 
 const performUnitOfWork = (fiber, hydrate) => {
-  // console.log('performUnitOfWork', fiber);
   const isFunctionComponent = fiber.type instanceof Function;
   if (isFunctionComponent) {
     updateFunctionComponent(fiber);
