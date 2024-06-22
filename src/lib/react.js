@@ -35,6 +35,7 @@ export const useState = (initialValue) => {
       alternate: internal.currentRoot,
     };
     internal.nextUnitOfWork = internal.wipRoot;
+    // console.log('setState', newValue, internal.wipRoot);
     internal.deletions = [];
   };
   internal.wipFiber.hooks.push(hook);

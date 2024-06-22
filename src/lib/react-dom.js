@@ -46,6 +46,7 @@ const updateDom = (dom, prevProps, nextProps) => {
     .forEach((name) => {
       const eventType = name.toLowerCase().substring(2);
       dom.addEventListener(eventType, nextProps[name]);
+      // console.log('Added event listener', eventType, nextProps[name]);
     });
 };
 
@@ -63,12 +64,15 @@ const commitRoot = () => {
 };
 
 const commitWork = (fiber, domParent, domChildIndex) => {
-  console.log('commitWork', { fiber, domParent, domChildIndex });
+  // console.log('commitWork', { fiber, domParent, domChildIndex });
   if (!fiber) return;
   const isFunctionComponent = fiber.type instanceof Function;
   if (fiber.effectTag === 'PLACEMENT' && fiber.dom === null && !isFunctionComponent) {
     // Note: hydration
     fiber.dom = domParent.children[domChildIndex];
+    if (fiber.dom) {
+      updateDom(fiber.dom, {}, fiber.props);
+    }
   } else if (fiber.effectTag === 'PLACEMENT' && fiber.dom != null) {
     domParent.appendChild(fiber.dom);
   } else if (fiber.effectTag === 'DELETION') {
@@ -126,6 +130,7 @@ export const hydrate = (element, container) => {
   commitRoot();
   console.log("Done hydrating!");
   console.log(internal.currentRoot);
+  // console.log(JSON.stringify(JSON.decycle(internal.currentRoot), null, 2));
   requestIdleCallback(workLoop);
 };
 
