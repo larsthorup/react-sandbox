@@ -51,27 +51,40 @@ const updateDom = (dom, prevProps, nextProps) => {
 
 const commitRoot = () => {
   internal.deletions.forEach(commitWork);
-  commitWork(internal.wipRoot.child);
-  internal.currentRoot = internal.wipRoot;
-  internal.wipRoot = null;
-};
-
-const commitWork = (fiber) => {
-  if (!fiber) return;
+  const fiber = internal.wipRoot.child;
   let domParentFiber = fiber.parent;
   while (!domParentFiber.dom) {
     domParentFiber = domParentFiber.parent;
   }
   const domParent = domParentFiber.dom;
-  if (fiber.effectTag === 'PLACEMENT' && fiber.dom != null) {
+  commitWork(fiber, domParent, 0);
+  internal.currentRoot = internal.wipRoot;
+  internal.wipRoot = null;
+};
+
+const commitWork = (fiber, domParent, domChildIndex) => {
+  if (!fiber) return;
+  const isFunctionComponent = fiber.type instanceof Function;
+  if (fiber.effectTag === 'PLACEMENT' && fiber.dom === null && !isFunctionComponent) {
+    // Note: hydration
+    if (domParent.children.length === 0 && domParent.childNodes.length === 1) {
+      // Note: this handles only text nodes not mixed with HTML elements
+      fiber.dom = domParent.childNodes[0];
+    } else {
+      fiber.dom = domParent.children[domChildIndex];
+    }
+    if (fiber.dom) {
+      updateDom(fiber.dom, {}, fiber.props);
+    }
+  } else if (fiber.effectTag === 'PLACEMENT' && fiber.dom != null) {
     domParent.appendChild(fiber.dom);
   } else if (fiber.effectTag === 'DELETION') {
     commitDeletion(fiber, domParent);
   } else if (fiber.effectTag === 'UPDATE' && fiber.dom != null) {
     updateDom(fiber.dom, fiber.alternate.props, fiber.props);
   }
-  commitWork(fiber.child);
-  commitWork(fiber.sibling);
+  commitWork(fiber.child, fiber.dom || domParent, 0);
+  commitWork(fiber.sibling, domParent, domChildIndex + 1);
 };
 
 function commitDeletion(fiber, domParent) {
@@ -92,6 +105,27 @@ export const render = (element, container) => {
   };
   internal.deletions = [];
   internal.nextUnitOfWork = internal.wipRoot;
+  requestIdleCallback(workLoop);
+};
+
+export const hydrate = (element, container) => {
+  internal.wipRoot = {
+    dom: container,
+    props: {
+      children: [element],
+    },
+    alternate: internal.currentRoot,
+  };
+  internal.deletions = [];
+  internal.nextUnitOfWork = internal.wipRoot;
+  while (internal.nextUnitOfWork) {
+    internal.nextUnitOfWork = performUnitOfWork(internal.nextUnitOfWork, true);
+  }
+  commitRoot();
+  // console.log("Done hydrating!");
+  // console.log(internal.currentRoot);
+  // console.log(JSON.stringify(JSON.decycle(internal.currentRoot, domReplacer), null, 2));
+  requestIdleCallback(workLoop);
 };
 
 const domReplacer = (value) => {
@@ -112,19 +146,17 @@ const workLoop = (deadline) => {
   }
   if (!internal.nextUnitOfWork && internal.wipRoot) {
     commitRoot();
-    console.log(JSON.stringify(JSON.decycle(internal.currentRoot, domReplacer), null, 2));
+    // console.log(JSON.stringify(JSON.decycle(internal.currentRoot, domReplacer), null, 2));
   }
   requestIdleCallback(workLoop);
 };
 
-requestIdleCallback(workLoop);
-
-const performUnitOfWork = (fiber) => {
+const performUnitOfWork = (fiber, hydrate) => {
   const isFunctionComponent = fiber.type instanceof Function;
   if (isFunctionComponent) {
     updateFunctionComponent(fiber);
   } else {
-    updateHostComponent(fiber);
+    updateHostComponent(fiber, hydrate);
   }
   if (fiber.child) {
     return fiber.child;
@@ -156,8 +188,9 @@ const updateFunctionComponent = (fiber) => {
   reconcileChildren(fiber, children);
 };
 
-const updateHostComponent = (fiber) => {
-  if (!fiber.dom) {
+const updateHostComponent = (fiber, hydrate) => {
+  if (!hydrate && !fiber.dom) {
+    // Note: hydration will happen in commitWork()
     fiber.dom = createDom(fiber);
   }
   const elements = fiber.props.children;
