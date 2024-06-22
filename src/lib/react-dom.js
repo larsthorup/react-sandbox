@@ -94,6 +94,15 @@ export const render = (element, container) => {
   internal.nextUnitOfWork = internal.wipRoot;
 };
 
+const domReplacer = (value) => {
+  if (value instanceof HTMLElement) {
+    return value.outerHTML;
+  } else if (value instanceof Text) {
+    return value.textContent;
+  }
+  return value;
+}
+
 const workLoop = (deadline) => {
   let shouldYield = false;
   while (internal.nextUnitOfWork && !shouldYield) {
@@ -103,7 +112,7 @@ const workLoop = (deadline) => {
   }
   if (!internal.nextUnitOfWork && internal.wipRoot) {
     commitRoot();
-    // console.log(JSON.stringify(JSON.decycle(internal.currentRoot), null, 2));
+    console.log(JSON.stringify(JSON.decycle(internal.currentRoot, domReplacer), null, 2));
   }
   requestIdleCallback(workLoop);
 };
@@ -167,7 +176,7 @@ const reconcileChildren = (wipFiber, elements) => {
     if (sameType) {
       newFiber = {
         type: oldFiber.type,
-        props: element.props,
+        props: { ...element.props },
         dom: oldFiber.dom,
         parent: wipFiber,
         alternate: oldFiber,
@@ -177,7 +186,7 @@ const reconcileChildren = (wipFiber, elements) => {
     if (element && !sameType) {
       newFiber = {
         type: element.type,
-        props: element.props,
+        props: { ...element.props },
         dom: null,
         parent: wipFiber,
         alternate: null,
