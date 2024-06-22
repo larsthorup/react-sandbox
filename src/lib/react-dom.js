@@ -69,7 +69,12 @@ const commitWork = (fiber, domParent, domChildIndex) => {
   const isFunctionComponent = fiber.type instanceof Function;
   if (fiber.effectTag === 'PLACEMENT' && fiber.dom === null && !isFunctionComponent) {
     // Note: hydration
-    fiber.dom = domParent.children[domChildIndex];
+    if (domParent.children.length === 0 && domParent.childNodes.length === 1) {
+      // Note: this handles only text nodes not mixed with HTML elements
+      fiber.dom = domParent.childNodes[0];
+    } else {
+      fiber.dom = domParent.children[domChildIndex];
+    }
     if (fiber.dom) {
       updateDom(fiber.dom, {}, fiber.props);
     }
@@ -106,15 +111,6 @@ export const render = (element, container) => {
 };
 
 export const hydrate = (element, container) => {
-  // internal.currentRoot = {
-  //   dom: container,
-  //   props: {
-  //     children: [element],
-  //   },
-  //   alternate: null,
-  //   hydrate: true,
-  // };
-  // console.log(internal.currentRoot);
   internal.wipRoot = {
     dom: container,
     props: {
@@ -128,9 +124,9 @@ export const hydrate = (element, container) => {
     internal.nextUnitOfWork = performUnitOfWork(internal.nextUnitOfWork);
   }
   commitRoot();
-  console.log("Done hydrating!");
-  console.log(internal.currentRoot);
-  // console.log(JSON.stringify(JSON.decycle(internal.currentRoot), null, 2));
+  // console.log("Done hydrating!");
+  // console.log(internal.currentRoot);
+  // console.log(JSON.stringify(JSON.decycle(internal.currentRoot, domReplacer), null, 2));
   requestIdleCallback(workLoop);
 };
 
@@ -152,7 +148,7 @@ const workLoop = (deadline) => {
   }
   if (!internal.nextUnitOfWork && internal.wipRoot) {
     commitRoot();
-    console.log(JSON.stringify(JSON.decycle(internal.currentRoot, domReplacer), null, 2));
+    // console.log(JSON.stringify(JSON.decycle(internal.currentRoot, domReplacer), null, 2));
   }
   requestIdleCallback(workLoop);
 };

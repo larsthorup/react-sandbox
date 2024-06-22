@@ -3,10 +3,8 @@ import { h, useState } from './lib/react.js';
 const Hello = ({ name }) => {
   const [value, setValue] = useState('');
   const onChange = (ev) => {
-    console.log('Hello.onChange');
     setValue(ev.target.value);
   };
-  console.log('Hello', { name, value });
   const h1 = h('h1', null, 'Greeting');
   const p = h('p', null, `Hello ${value ? `${value} ` : ''}from ${name}`);
   const label = h('label', { htmlFor: 'name'}, 'Enter name:');
